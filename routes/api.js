@@ -72,6 +72,32 @@ router.post("/turma", async (req, res, next) => {
     }
 });
 
+router.put("/turma", async (req, res, next) => {
+    try {
+        let novoNomeTurma = req.body.novoNomeTurma.toString();
+        let turma = req.body.turma.toString();
+        let values = [novoNomeTurma, turma]
+        connection.query("update disciplina set nomeTur = ? where nomeTur = ?;", values, function(err, result) {
+            if(err) throw err;
+            res.json(turma);
+        }).end;
+    } catch (e) {
+        console.error(e);
+    }
+});
+
+router.delete("/turma", async (req, res, next) => {
+    try {
+        let turma = req.body.turma.toString();
+        connection.query("delete from turma where nomeTur = ?;", turma, function(err, result) {
+            if(err) throw err;
+            res.json(turma);
+        }).end;
+    } catch (e) {
+        console.error(e);
+    }
+});
+
 router.get("/alunos", async (req, res, next) => {
     // let idTur = req.body.turma;
     try {
