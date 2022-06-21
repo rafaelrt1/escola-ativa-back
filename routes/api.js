@@ -4,7 +4,8 @@ const connection = require('../config/connectDb');
 
 router.get("/disciplinas", async (req, res, next) => {
     try {
-        connection.query("Select nomeDisc from disciplina;", function(err, rows, fields) {
+        connection.query("Select nomeDisc as nome, idDisc as id from disciplina;", function (err, rows, fields) {
+            if (err) throw err;
             res.json(rows);
         }).end;
     } catch (e) {
@@ -15,8 +16,8 @@ router.get("/disciplinas", async (req, res, next) => {
 router.post("/disciplina", async (req, res, next) => {
     try {
         let disciplina = req.body.disciplina.toString();
-        connection.query("insert into disciplina(nomeDisc) values (?)", disciplina, function(err, result){
-            if(err) throw err;
+        connection.query("insert into disciplina(nomeDisc) values (?)", disciplina, function (err, result) {
+            if (err) throw err;
             res.json(disciplina)
         }).end;
     } catch (e) {
@@ -29,8 +30,8 @@ router.put("/disciplina", async (req, res, next) => {
         let disciplina = parseInt(req.body.disciplina);
         let novoNome = req.body.nome.toString();
         let values = [novoNome, disciplina]
-        connection.query("update disciplina set nomeDisc = ? where idDisc = ?", values, function(err, result){
-            if(err) throw err;
+        connection.query("update disciplina set nomeDisc = ? where idDisc = ?", values, function (err, result) {
+            if (err) throw err;
             res.json(values);
         }).end;
     } catch (e) {
@@ -41,8 +42,8 @@ router.put("/disciplina", async (req, res, next) => {
 router.delete("/disciplina", async (req, res, next) => {
     try {
         let disciplina = parseInt(req.body.disciplina);
-        connection.query("delete from disciplina where idDisc = ?", disciplina, function(err, result){
-            if(err) throw err;
+        connection.query("delete from disciplina where idDisc = ?", disciplina, function (err, result) {
+            if (err) throw err;
             res.json(disciplina);
         }).end;
     } catch (e) {
@@ -52,8 +53,84 @@ router.delete("/disciplina", async (req, res, next) => {
 
 router.get("/turmas", async (req, res, next) => {
     try {
-        connection.query("Select nomeTur from turma;", function(err, rows, fields) {
+        connection.query("Select nomeTur as nome, idTur as id from turma;", function (err, rows, fields) {
             res.json(rows);
+        }).end;
+    } catch (e) {
+        console.error(e);
+    }
+});
+
+router.get("/turmas/:disc", async (req, res, next) => {
+    try {
+        let disciplina = req.params.disc;
+        connection.query("Select t.nomeTur as nome, t.idTur as id from turma t join turma_disciplina td using (idTur) join disciplina d using (idDisc) where d.idDisc = ? ;", disciplina, function (err, rows, fields) {
+            res.json(rows);
+        }).end;
+    } catch (e) {
+        console.error(e);
+    }
+});
+
+router.get("/pontuacao", async (req, res, next) => {
+    try {
+        let disciplina =  parseInt(req.query.disc);
+        let turma =  parseInt(req.query.tur);
+        // console.log(disciplina, turma);
+        let values = [disciplina, turma]
+        connection.query(`Select a.nomeAlu as nomeAluno,
+         c.nomeCont as conteudo, p.fase as fase,
+         p.nota as nota, 
+         p.idPon
+         from pontuacao p 
+         join aluno a using (idAlu) 
+         join turma_disciplina td using (idTD) 
+         join turma t on t.idTur = td.idTur 
+         join disciplina d using (idDisc) 
+         join conteudo c using (idCont) 
+         where d.idDisc = ? and t.idTur = ?`, values, function (err, rows, fields) {
+            res.json(rows);
+        }).end;
+    } catch (e) {
+        console.error(e);
+    }
+});
+
+router.get("/notafinal", async (req, res, next) => {
+    try {
+        // let aluno =  parseInt(req.query.aluno)
+        let disciplina =  parseInt(req.query.disc);
+        let turma =  parseInt(req.query.tur);
+        // console.log(disciplina, turma);
+        let values = [disciplina, turma]
+        connection.query(`
+        SELECT 
+        a.nomeAlu,
+        f.notaFinal
+        FROM final f
+        join turma_disciplina td on td.idTD = f.idTD
+        join turma t on td.idTur = t.idTur
+        join disciplina d on td.idDisc = d.idDisc
+        join aluno a on a.idAlu = f.idAlu
+        join pontuacao p on p.idAlu = a.idAlu and p.idTD = td.idTD
+        #join conteudo c using (idCont)
+        where  
+        d.idDisc = ?
+        and t.idTur = ?
+        group by a.nomeAlu`, values, function (err, rows, fields) {
+            res.json(rows);
+        }).end;
+    } catch (e) {
+        console.error(e);
+    }
+});
+
+router.delete("/pontuacao", async (req, res, next) => {
+    try {
+        let pontuacao = req.body.pontuacao.toString();
+        connection.query("delete from pontuacao where idPon = ?;", pontuacao, function (err, result) {
+            if (err) throw err;
+            res.json(pontuacao);
         }).end;
     } catch (e) {
         console.error(e);
@@ -63,8 +140,8 @@ router.get("/turmas", async (req, res, next) => {
 router.post("/turma", async (req, res, next) => {
     try {
         let turma = req.body.turma.toString();
-        connection.query("insert into turma(nomeTur) values (?);", turma, function(err, result) {
-            if(err) throw err;
+        connection.query("insert into turma(nomeTur) values (?);", turma, function (err, result) {
+            if (err) throw err;
             res.json(turma);
         }).end;
     } catch (e) {
@@ -77,8 +154,8 @@ router.put("/turma", async (req, res, next) => {
         let novoNomeTurma = req.body.novoNomeTurma.toString();
         let turma = req.body.turma.toString();
         let values = [novoNomeTurma, turma]
-        connection.query("update disciplina set nomeTur = ? where nomeTur = ?;", values, function(err, result) {
-            if(err) throw err;
+        connection.query("update disciplina set nomeTur = ? where nomeTur = ?;", values, function (err, result) {
+            if (err) throw err;
             res.json(turma);
         }).end;
     } catch (e) {
@@ -89,8 +166,8 @@ router.put("/turma", async (req, res, next) => {
 router.delete("/turma", async (req, res, next) => {
     try {
         let turma = req.body.turma.toString();
-        connection.query("delete from turma where nomeTur = ?;", turma, function(err, result) {
-            if(err) throw err;
+        connection.query("delete from turma where nomeTur = ?;", turma, function (err, result) {
+            if (err) throw err;
             res.json(turma);
         }).end;
     } catch (e) {
@@ -101,7 +178,7 @@ router.delete("/turma", async (req, res, next) => {
 router.get("/alunos", async (req, res, next) => {
     // let idTur = req.body.turma;
     try {
-        connection.query(`Select al.nomeAlu from aluno al join turma t on al.idTur = t.idTur;`, function(err, rows, fields) {
+        connection.query(`Select al.nomeAlu as nome, al.idAlu as idAluno, t.nomeTur as turma, t.idTur as idTurma from aluno al join turma t on al.idTur = t.idTur;`, function (err, rows, fields) {
             res.json(rows);
         }).end;
     } catch (e) {
@@ -112,8 +189,8 @@ router.get("/alunos", async (req, res, next) => {
 router.post("/disciplina", async (req, res, next) => {
     try {
         let disciplina = req.body.disciplina;
-        connection.query("insert into disciplina(nomeDisc) values (?)", disciplina.toString(), function(err, result){
-            if(err) throw err;
+        connection.query("insert into disciplina(nomeDisc) values (?)", disciplina.toString(), function (err, result) {
+            if (err) throw err;
             res.json(disciplina)
         }).end;
     } catch (e) {
@@ -126,8 +203,8 @@ router.post("/aluno", async (req, res, next) => {
         let aluno = req.body.aluno.toString();
         let turma = parseInt(req.body.turma);
         let values = [aluno, turma];
-        connection.query("insert into aluno(nomeAlu, idTur) values (?, ?)", values, function(err, result){
-            if(err) throw err;
+        connection.query("insert into aluno(nomeAlu, idTur) values (?, ?)", values, function (err, result) {
+            if (err) throw err;
             res.json(values);
         }).end;
     } catch (e) {
@@ -138,8 +215,8 @@ router.post("/aluno", async (req, res, next) => {
 router.delete("/aluno", async (req, res, next) => {
     try {
         let aluno = parseInt(req.body.aluno);
-        connection.query("delete from aluno where idAlu = ?", aluno, function(err, result){
-            if(err) throw err;
+        connection.query("delete from aluno where idAlu = ?", aluno, function (err, result) {
+            if (err) throw err;
             res.json(aluno);
         }).end;
     } catch (e) {
