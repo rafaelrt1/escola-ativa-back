@@ -1,41 +1,27 @@
-const LocalStrategy = require('passport-local').Strategy;
+const connection = require('./config/connectDb');
 
-module.exports = function (passport) {
-
-    passport.serializeUser((user, done) => {
-        done(null, user.id);
-    });
-
-    passport.deserializeUser(async (id, done) => {
-        try {
-            const db = require('./db');
-            const user = await db.findUserById(id);
-            done(null, user);
-        } catch (err) {
-            done(err, null);
-        }
-    });
-
-    passport.use(new LocalStrategy({
-        usernameField: 'username',
-        passwordField: 'password'
-    },
-        async (username, password, done) => {
-            try {
-                const db = require('./db');
-                const user = await db.findUser(username);
-
-                // usuário inexistente
-                if (!user) { return done(null, false) }
-
-                // comparando as senhas
-                const isValid = (password === user.password);
-                if (!isValid) return done(null, false)
-                
-                return done(null, user)
-            } catch (err) {
-                done(err, false);
-            }
-        }
-    ));
+async function findUser(username) {
+    console.log(username);
+    // const conn = await connect();
+    console.log("username: ",username);
+    connection.query("SELECT * FROM usuario WHERE loginUsu=? LIMIT 1;", username, function (err, rows, fields) {
+        console.log(rows[0])
+        if (rows.length > 0)
+            return rows[0];
+        else return null;
+    }).end;
 }
+
+async function findUserById(id) {
+    console.log(id);
+    // const conn = await connect();
+    console.log("id: ",id);
+    connection.query("SELECT * FROM usuario WHERE idUsu=? LIMIT 1;", id, function (err, rows, fields) {
+        console.log(rows[0])
+        if (rows.length > 0)
+            return rows[0];
+        else return null;
+    }).end;
+}
+
+module.exports = { findUser, findUserById }

@@ -1,12 +1,22 @@
 const express = require("express");
 const router = express.Router();
 const connection = require('../config/connectDb');
+const passport = require('passport');
+
+router.post('/login',
+    passport.authenticate('local', { 
+        successRedirect: '/', 
+        failureRedirect: '/login?fail=true' 
+    })
+);
 
 router.get("/disciplinas", async (req, res, next) => {
     try {
         connection.query("Select nomeDisc as nome, idDisc as id from disciplina;", function (err, rows, fields) {
-            if (err) throw err;
-            res.json(rows);
+            if (err)
+                res.json({error: "Não foi possível realizar esta operação"});
+            else
+                res.json(rows);
         }).end;
     } catch (e) {
         console.error(e);
@@ -17,8 +27,10 @@ router.post("/disciplina", async (req, res, next) => {
     try {
         let disciplina = req.body.disciplina.toString();
         connection.query("insert into disciplina(nomeDisc) values (?)", disciplina, function (err, result) {
-            if (err) throw err;
-            res.json(disciplina)
+            if (err) 
+                res.json({error: "Não foi possível realizar esta operação"});
+            else
+                res.json({success: rows});
         }).end;
     } catch (e) {
         console.error(e);
@@ -31,8 +43,10 @@ router.put("/disciplina", async (req, res, next) => {
         let novoNome = req.body.nome.toString();
         let values = [novoNome, disciplina]
         connection.query("update disciplina set nomeDisc = ? where idDisc = ?", values, function (err, result) {
-            if (err) throw err;
-            res.json(values);
+            if (err) 
+                res.json({error: "Não foi possível realizar esta operação"});
+            else
+                res.json({success: "Sucesso"});
         }).end;
     } catch (e) {
         console.error(e);
@@ -43,8 +57,67 @@ router.delete("/disciplina", async (req, res, next) => {
     try {
         let disciplina = parseInt(req.body.disciplina);
         connection.query("delete from disciplina where idDisc = ?", disciplina, function (err, result) {
-            if (err) throw err;
-            res.json(disciplina);
+            if(err)
+                res.json({error: "Ocorreu um erro ao realizar a operação"});
+            else
+                res.json({success: "Sucesso"});
+        }).end;
+    } catch (e) {
+        console.error(e);
+    }
+});
+
+router.get("/conteudos", async (req, res, next) => {
+    try {
+        connection.query("Select nomeCont as nome, idCont as id from conteudo;", function (err, rows, fields) {
+            if (err) 
+                res.json({error: "Não foi possível realizar esta operação"});
+            else
+                res.json(rows);
+        }).end;
+    } catch (e) {
+        console.error(e);
+    }
+});
+
+router.post("/conteudo", async (req, res, next) => {
+    try {
+        let conteudo = req.body.conteudo.toString();
+        connection.query("insert into conteudo(nomeCont) values (?)", conteudo, function (err, result) {
+            if (err)
+                res.json({error: "Não foi possível realizar esta operação"});
+            else
+                res.json({success: "Sucesso"});
+        }).end;
+    } catch (e) {
+        console.error(e);
+    }
+});
+
+router.put("/conteudo", async (req, res, next) => {
+    try {
+        let conteudo = parseInt(req.body.id);
+        let novoNome = req.body.nome.toString();
+        let values = [novoNome, conteudo]
+        connection.query("update conteudo set nomeCont = ? where idCont = ?", values, function (err, result) {
+            if (err)
+                res.json({error: "Não foi possível realizar esta operação"});
+            else
+                res.json({success: "Sucesso"});
+        }).end;
+    } catch (e) {
+        console.error(e);
+    }
+});
+
+router.delete("/conteudo", async (req, res, next) => {
+    try {
+        let conteudo = parseInt(req.body.conteudo);
+        connection.query("delete from conteudo where idCont = ?", conteudo, function (err, result) {
+            if(err)
+                res.json({error: "Ocorreu um erro ao realizar a operação"});
+            else
+                res.json({success: "Sucesso"});
         }).end;
     } catch (e) {
         console.error(e);
@@ -54,7 +127,10 @@ router.delete("/disciplina", async (req, res, next) => {
 router.get("/turmas", async (req, res, next) => {
     try {
         connection.query("Select nomeTur as nome, idTur as id from turma;", function (err, rows, fields) {
-            res.json(rows);
+            if(err)
+                res.json({error: "Ocorreu um erro ao realizar a operação"});
+            else
+                res.json(rows);
         }).end;
     } catch (e) {
         console.error(e);
@@ -152,7 +228,6 @@ router.post("/turma", async (req, res, next) => {
 router.put("/turma", async (req, res, next) => {
     try {
         let novoNomeTurma = req.body.novoNomeTurma.toString();
-
         let turma = parseInt(req.body.turma);
         let values = [novoNomeTurma, turma];
         connection.query("update turma set nomeTur = ? where idTur = ?;", values, function(err, result) {
@@ -168,8 +243,10 @@ router.delete("/turma", async (req, res, next) => {
     try {
         let turma = parseInt(req.body.turma);
         connection.query("delete from turma where idTur = ?;", turma, function(err, result) {
-            if(err) throw err;
-            res.json(turma);
+            if(err)
+                res.json({error: "Ocorreu um erro ao realizar a operação"});
+            else
+                res.json({success: turma});
         }).end;
     } catch (e) {
         console.error(e);
@@ -229,21 +306,17 @@ router.post("/turma-disciplina", async (req, res, next) => {
         let disciplina = parseInt(req.body.disciplina);
         let turma = parseInt(req.body.turma);
         let values = [turma , disciplina];
-        connection.query(`select * from turma_disciplina where idTur = ${turma} and idDisc = ${disciplina};`, '', function(err, result){
+        connection.query(`select * from turma_disciplina where idTur = ? and idDisc = ?;`, values, function(err, result){
             if(err) throw err;
             if (!result.length) {
                 connection.query("insert into turma_disciplina(idTur, idDisc) values (?, ?);", values, function(err, result){
                     if(err) throw err;
-                    res.json(values);
+                    res.json(values); 
                 }).end;
             }
             else 
                 res.json({result, status:"Turma e disciplina já vinculadas"});
         }).end;
-        // connection.query("insert into turma_disciplina(idTur, idDisc) values (?, ?);", values, function(err, result){
-        //     if(err) throw err;
-        //     res.json(values);
-        // }).end;
     } catch (e) {
         console.error(e);
     }
@@ -252,8 +325,10 @@ router.post("/turma-disciplina", async (req, res, next) => {
 router.put("/turma-aluno", async (req, res, next) => {
     try {
         let aluno = parseInt(req.body.aluno);
+        let novoNome = req.body.novoAluno.toString();
         let turma = parseInt(req.body.turma);
-        connection.query(`update aluno set idTur = ${turma} where idAlu = ${aluno};`, '', function(err, result){
+        let values = [turma, novoNome, aluno]
+        connection.query(`update aluno set idTur = ?, nomeAlu = ? where idAlu = ?;`, values, function(err, result){
             if(err) throw err;
             res.json(values);
         }).end;
@@ -261,5 +336,29 @@ router.put("/turma-aluno", async (req, res, next) => {
         console.error(e);
     }
 });
+
+// router.delete("/turma", async (req, res, next) => {
+//     try {
+//         let turma = parseInt(req.body.turma);
+//         connection.query("SET FOREIGN_KEY_CHECKS = 0;", null , function(err, result) {
+//             if(err) throw err;
+//             if (!result.length) {
+//                 connection.query("delete from turma where idTur = ?;", turma, function(err, result){
+//                     if(err) throw err;
+//                         if (!result.length) {
+//                             connection.query("SET FOREIGN_KEY_CHECKS = 1;", null, function(err, result){
+//                                 if(err) throw err;
+//                                 res.json(result);
+//                             }).end;
+//                         }else 
+//                     res.json(result);
+//                 }).end;
+//             }else 
+//                 res.json({result, status:"Turma e disciplina já vinculadas"});
+//         }).end;
+//     } catch (e) {
+//         console.error(e);
+//     }
+// });
 
 module.exports = router;
