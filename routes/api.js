@@ -275,8 +275,10 @@ router.post("/pontuacao", async (req, res, next) => {
         let idCont = parseInt(req.body.conteudo);
         let fase = parseInt(req.body.fase);
         let nota = parseFloat(req.body.nota);
-        console.log(idDisc, idTur, idAlu, idCont, fase, nota);
+        // console.log(idDisc, idTur, idAlu, idCont, fase, nota);
+        // call escolaativa.proc_nova_pontuacao(2, 1, 1, 1, 1, 5);
         connection.query(`
+        
         CALL proc_nova_pontuacao(${idTur}, ${idDisc}, ${idAlu}, ${idCont}, ${fase}, ${nota});`
             , function (err, result) {
                 if (err)
@@ -319,7 +321,7 @@ router.put("/pontuacao", async (req, res, next) => {
                 if (err)
                     res.json({ error: "Ocorreu um erro ao realizar a operação" });
                 else
-                    res.json(result);
+                    res.json({ success: "Sucesso" });
             }).end;
     } catch (e) {
         console.error(e);
