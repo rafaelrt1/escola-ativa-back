@@ -30,7 +30,7 @@ router.post("/disciplina", async (req, res, next) => {
             if (err)
                 res.json({ error: "Não foi possível realizar esta operação" });
             else
-                res.json({ success: rows });
+                res.json({ success: "Sucesso" });
         }).end;
     } catch (e) {
         console.error(e);
@@ -348,8 +348,10 @@ router.put("/turma", async (req, res, next) => {
         let turma = parseInt(req.body.turma);
         let values = [novoNomeTurma, turma];
         connection.query("update turma set nomeTur = ? where idTur = ?;", values, function (err, result) {
-            if (err) throw err;
-            res.json(turma);
+            if (err)
+                res.json({ error: "Ocorreu um erro ao realizar a operação" });
+            else
+                res.json(turma);
         }).end;
     } catch (e) {
         console.error(e);
@@ -453,11 +455,11 @@ router.post("/turma-disciplina", async (req, res, next) => {
                     if (err)
                         res.json({ error: "Ocorreu um erro ao realizar a operação" });
                     else
-                        res.json(result);
+                        res.json({ success: "Vinculado com sucesso!" });
                 }).end;
             }
             else
-                res.json({ result, status: "Turma e disciplina já vinculadas" });
+                res.json({ result, error: "Turma e disciplina já vinculadas" });
         }).end;
     } catch (e) {
         console.error(e);
