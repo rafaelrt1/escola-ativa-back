@@ -8,6 +8,7 @@ const apiRouter = require('./routes/api');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+require('dotenv').config();
 const loginRouter = require('./routes/login');
 
 app.use(cors());
@@ -29,13 +30,13 @@ const MySQLStore = require('express-mysql-session')(session);
 require('./auth')(passport);
 app.use(session({
   key: 'session_cookie_name',
-  secret: 'session_cookie_secret  ',
+  secret: 'session_cookie_secret',
   store: new MySQLStore({
-    host: 'localhost',
+    host: process.env.HOST,
     port: 3306,
-    user: 'root',
-    password: '#Gl2017lam10',
-    database: 'escolaativa'
+    user: process.env.USER,
+    password: process.env.PASSWORD,
+    database: process.env.DB
   }),
   resave: false,
   saveUninitialized: false,
@@ -48,10 +49,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use("/login", loginRouter);
-// app.use('/users', authenticationMiddleware, usersRouter);
 app.use("/", apiRouter);
-// app.use('/users', authenticationMiddleware, usersRouter);
-// app.use('/', authenticationMiddleware,  indexRouter);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
