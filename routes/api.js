@@ -254,7 +254,7 @@ router.get("/notafinal", async (req, res, next) => {
 
 router.delete("/pontuacao", async (req, res, next) => {
     try {
-        let pontuacao = req.body.pontuacao.toString();
+        let pontuacao = req.body.pontuacao;
         connection.query("delete from pontuacao where idPon = ?;", pontuacao, function (err, result) {
             if (err)
                 res.json({ error: "Ocorreu um erro ao realizar a operação" });
@@ -275,7 +275,7 @@ router.post("/pontuacao", async (req, res, next) => {
         let idCont = parseInt(req.body.conteudo);
         let fase = parseInt(req.body.fase);
         let nota = parseFloat(req.body.nota);
-        // console.log(idDisc, idTur, idAlu, idCont, fase, nota);
+        console.log(idTur, idDisc, idAlu, idCont, fase, nota);
         // call escolaativa.proc_nova_pontuacao(2, 1, 1, 1, 1, 5);
         connection.query(`
         
@@ -379,7 +379,7 @@ router.get("/alunos", async (req, res, next) => {
             connection.query(`
             Select 
             al.nomeAlu as nome,
-            al.idAlu as id 
+            al.idAlu as idAluno 
             from aluno al join 
             turma t on al.idTur = t.idTur
             where al.idTur = ${turma};`, function (err, rows, fields) {
@@ -414,7 +414,7 @@ router.post("/disciplina", async (req, res, next) => {
 });
 
 router.post("/aluno", async (req, res, next) => {
-    try {
+try {
         let aluno = req.body.aluno.toString();
         let turma = parseInt(req.body.turma);
         let values = [aluno, turma];
