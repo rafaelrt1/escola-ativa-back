@@ -8,6 +8,7 @@ const apiRouter = require('./routes/api');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+require('dotenv').config();
 const loginRouter = require('./routes/login');
 
 app.use(cors());
@@ -29,7 +30,7 @@ const MySQLStore = require('express-mysql-session')(session);
 require('./auth')(passport);
 app.use(session({
   key: 'session_cookie_name',
-  secret: 'session_cookie_secret ',
+  secret: 'session_cookie_secret',
   store: new MySQLStore({
     host: process.env.HOST,
     port: 3306,
